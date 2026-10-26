@@ -83,3 +83,23 @@ test('oversized, non-file, and unreadable targets are skipped', async () => {
   const validated = await validateEvidence(ctx, {}, evidence, signal)
   assert.deepEqual(validated.map(item => item.target.targetKey), ['/repo/a.js'])
 })
+
+test('config limits bound the validated size and file count', async () => {
+  const ctx = ctxWithFiles({
+    '/repo/a.js': { text: 'const a = 1' },
+    '/repo/b.js': { text: 'const b = 2' },
+  })
+  const evidence = [
+    { path: '/repo/a.js', snippets: [{ text: 'const a = 1' }] },
+    { path: '/repo/b.js', snippets: [{ text: 'const b = 2' }] },
+  ]
+  assert.deepEqual(
+    (await validateEvidence(ctx, {}, evidence, signal, { maxSourceBytes: 100, maxEvidenceFiles: 1 }))
+      .map(item => item.target.targetKey),
+    ['/repo/a.js'],
+  )
+  assert.deepEqual(
+    (await validateEvidence(ctx, {}, evidence, signal, { maxSourceBytes: 5 })).map(item => item.target.targetKey),
+    [],
+  )
+})

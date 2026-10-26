@@ -8,7 +8,9 @@ Bridges external code-reading tools into [DeepSeek Harness (DSH)](https://github
 
 - [Features](#features)
 - [Design Philosophy](#design-philosophy)
+- [Configuration](#configuration)
 - [Installation](#installation)
+- [Adding a Source](#adding-a-source)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -31,9 +33,42 @@ The plugin consists of three independent layers:
 
 Each layer is independently extensible. New code-reading tools can be integrated without modifying the core, and unverifiable reads do not grant editing authorization.
 
+Concurrent tool calls are observed in completion order. If an older observation for the same file arrives last, a later edit fails closed with `FS_STALE_VERSION` rather than editing unseen content.
+
+## Configuration
+
+Set fields under the plugin row's `config` in the profile patch:
+
+```yaml
+- id: fs-observation-bridge
+  name: 'dsh-fs-observation-bridge'
+  config:
+    maxSourceBytes: 8388608
+    maxEvidenceFiles: 200
+    disabledSources: []
+```
+
+| Field | Default | Meaning |
+| --- | --- | --- |
+| `maxSourceBytes` | `8388608` (8 MiB) | Largest file read to verify a snippet; larger files are skipped (no authorization). |
+| `maxEvidenceFiles` | `200` | Largest number of files validated from one tool result. |
+| `disabledSources` | `[]` | Built-in source ids to disable, for example `[codegraph]`. An unknown id fails activation. |
+
 ## Installation
 
 Install this package as a DSH bundle from the Plugin Manager (`plugin_manager`, action `install_bundle`, target: the absolute path of this package). The bundle declares `dsh.bundle.patch`, inserts one `fs-observation-bridge` row, and leaves the stock `fs-observation-policy` enabled.
+
+## Adding a Source
+
+Sources are built into the project rather than registered at runtime. Adding one
+is a focused contribution:
+
+1. Add `lib/sources/<tool>.js` exporting `{ id, accepts, extract, resolveRoot? }`.
+2. `extract(invocation)` returns `[{ path, root?, snippets: [{ text, startLine?, endLine? }] }]`; snippets must be verbatim source that appeared in the tool output.
+3. Register the source in `createSourceRegistry([...])` in `lib/index.js`.
+4. Add parser and evidence tests; the bridge core and transports need no change.
+
+A source that cannot provide verifiable snippets simply never authorizes an edit.
 
 ## Contributing
 
