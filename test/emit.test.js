@@ -35,6 +35,15 @@ test('final content that still shows the snippet authorizes the file', () => {
   assert.equal(emissions[0].actor, exec)
 })
 
+test('JSON codeBlocks content authorizes the file', () => {
+  const { ctx, emissions } = recorder()
+  const snippet = 'const a = 1\nconst b = 2'
+  stash(exec, [{ target, version: 'v1', snippets: [{ text: snippet }] }])
+  const json = JSON.stringify({ codeBlocks: [{ filePath: 'a.js', content: snippet }] })
+  flush(ctx, exec, { isError: false, content: [{ type: 'text', text: json }] })
+  assert.equal(emissions.length, 1)
+})
+
 test('a spilled or rewritten result authorizes nothing', () => {
   const { ctx, emissions } = recorder()
   stash(exec, [{ target, version: 'v1', snippets: [{ text: 'const a = 1' }] }])

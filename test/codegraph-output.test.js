@@ -94,6 +94,26 @@ test('context markdown uses the heading line for an unnumbered block', () => {
   assert.equal(evidence[0].snippets[0].endLine, 108)
 })
 
+test('context JSON codeBlocks become evidence', () => {
+  const text = JSON.stringify({
+    codeBlocks: [
+      { filePath: 'src/a.js', startLine: 1, endLine: 2, content: 'const a = 1\nconst b = 2' },
+      { filePath: 'src/b.js', startLine: 5, endLine: 5, content: 'const c = 3' },
+    ],
+  })
+  assert.deepEqual(parseCodegraphEvidence(text), [
+    { path: 'src/a.js', snippets: [{ text: 'const a = 1\nconst b = 2', startLine: 1, endLine: 2 }] },
+    { path: 'src/b.js', snippets: [{ text: 'const c = 3', startLine: 5, endLine: 5 }] },
+  ])
+})
+
+test('context JSON without code blocks authorizes nothing', () => {
+  assert.deepEqual(parseCodegraphEvidence(JSON.stringify({ codeBlocks: [] })), [])
+  assert.deepEqual(parseCodegraphEvidence(JSON.stringify({
+    codeBlocks: [{ filePath: 'src/a.js', content: '' }],
+  })), [])
+})
+
 test('a truncated fence contributes no evidence', () => {
   const text = [
     '**`src/alpha.js`** — alpha(function)',
