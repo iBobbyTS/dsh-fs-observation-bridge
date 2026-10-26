@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Filesystem Observation Bridge",
+    "description": "Lets read-before-edit trust the source returned by code-reading tools. Transports normalize MCP, CLI, and native calls; sources validate real source evidence against the current file."
+  }
+}

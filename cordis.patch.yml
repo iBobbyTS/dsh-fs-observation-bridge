@@ -1,0 +1,12 @@
+# Filesystem observation bridge.
+#
+# The stock `fs-observation-policy` stays mounted and keeps owning
+# `fs/write-intent` / `fs/edit-intent`. This bundle only adds observation
+# sources: source a code-reading tool actually returned is validated against
+# the current file and recorded through `fs/observed`, exactly like `read`.
+#
+# No row is disabled: the bridge registers no decision slot, so installing or
+# removing it never changes another plugin's registration.
+- insert:
+    - id: fs-observation-bridge
+      name: 'dsh-fs-observation-bridge'

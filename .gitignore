@@ -1,0 +1,3 @@
+.agent-work
+*.DS_Store
+node_modules/
