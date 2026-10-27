@@ -89,6 +89,7 @@ test('parseSimpleCommand accepts direct, absolute, and runner forms', () => {
     program: 'codegraph', operation: 'context', tokens: ['context', 'task'],
   })
   assert.equal(parseSimpleCommand('echo codegraph explore').program, 'echo')
+  assert.equal(parseSimpleCommand("'FOO=bar' codegraph explore").program, 'FOO=bar')
   assert.equal(sourceAccepts(codegraphSource, {
     transport: 'cli', program: 'echo', operation: 'codegraph',
   }), false)

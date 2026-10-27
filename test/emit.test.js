@@ -73,3 +73,44 @@ test('flushing without stashed evidence is a no-op', () => {
   flush(ctx, exec, { isError: false, content: [{ type: 'text', text: 'const a = 1' }] })
   assert.equal(emissions.length, 0)
 })
+
+test('exact expected output must remain complete in the final result', () => {
+  const { ctx, emissions } = recorder()
+  stash(exec, [{ target, version: 'v1', expected: 'a\nb\n', snippets: [{ text: 'a\nb\n' }] }])
+  flush(ctx, exec, { isError: false, content: [{ type: 'text', text: 'prefix\na\nb\nsuffix' }] })
+  assert.equal(emissions.length, 1)
+})
+
+test('a truncated exact expected output authorizes nothing', () => {
+  const { ctx, emissions } = recorder()
+  stash(exec, [{ target, version: 'v1', expected: 'a\nb\nc\n', snippets: [] }])
+  flush(ctx, exec, { isError: false, content: [{ type: 'text', text: 'a\nb\n' }] })
+  assert.equal(emissions.length, 0)
+})
+
+test('an exact empty cat requires the explicit no-output result', () => {
+  for (const text of ['(no output)', '']) {
+    const { ctx, emissions } = recorder()
+    stash(exec, [{ target, version: 'v1', expected: '', snippets: [], permitEmpty: true }])
+    flush(ctx, exec, { isError: false, content: [{ type: 'text', text }] })
+    assert.equal(emissions.length, 1, JSON.stringify(text))
+  }
+  const { ctx, emissions } = recorder()
+  stash(exec, [{ target, version: 'v1', expected: '', snippets: [], permitEmpty: false }])
+  flush(ctx, exec, { isError: false, content: [{ type: 'text', text: '(no output)' }] })
+  assert.equal(emissions.length, 0)
+})
+
+test('separate calls keep separate pending evidence and sessions', () => {
+  const { ctx, emissions } = recorder()
+  const second = { callId: 'call-2', agent: { session: {} }, signal }
+  const anonymous = { callId: 'call-3', signal }
+  stash(exec, [{ target, version: 'v1', expected: 'a\n', snippets: [{ text: 'a\n' }] }])
+  stash(second, [{ target, version: 'v2', expected: 'a\n', snippets: [{ text: 'a\n' }] }])
+  stash(anonymous, [{ target, version: 'v3', expected: 'a\n', snippets: [{ text: 'a\n' }] }])
+  flush(ctx, exec, { isError: false, content: [{ type: 'text', text: 'a\n' }] })
+  flush(ctx, second, { isError: false, content: [{ type: 'text', text: 'a\n' }] })
+  flush(ctx, anonymous, { isError: false, content: [{ type: 'text', text: 'a\n' }] })
+  assert.equal(emissions.length, 2)
+  assert.deepEqual(emissions.map(item => item.observation.version), ['v1', 'v2'])
+})

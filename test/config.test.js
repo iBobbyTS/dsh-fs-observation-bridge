@@ -7,6 +7,7 @@ import {
   selectSources,
 } from '../lib/config.js'
 import { codegraphSource } from '../lib/sources/codegraph.js'
+import { shellReadSource } from '../lib/sources/shell-read.js'
 
 test('config defaults are applied', () => {
   assert.deepEqual(resolveConfig(undefined), {
@@ -44,7 +45,9 @@ test('invalid config values fail at activation', () => {
 })
 
 test('disabledSources only accepts known built-in source ids', () => {
-  assert.deepEqual(selectSources([codegraphSource], []), [codegraphSource])
-  assert.deepEqual(selectSources([codegraphSource], ['codegraph']), [])
-  assert.throws(() => selectSources([codegraphSource], ['missing']), /unknown source/)
+  const sources = [codegraphSource, shellReadSource]
+  assert.deepEqual(selectSources(sources, []), sources)
+  assert.deepEqual(selectSources(sources, ['codegraph']), [shellReadSource])
+  assert.deepEqual(selectSources(sources, ['shell-read']), [codegraphSource])
+  assert.throws(() => selectSources(sources, ['missing']), /unknown source/)
 })

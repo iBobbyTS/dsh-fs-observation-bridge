@@ -7,10 +7,12 @@ import { registerBridge } from '../lib/bridge.js'
 import { clearPending } from '../lib/observation/emit.js'
 import { codegraphSource } from '../lib/sources/codegraph.js'
 import { createSourceRegistry } from '../lib/sources/registry.js'
+import { shellReadSource } from '../lib/sources/shell-read.js'
 import { cliTransport } from '../lib/transports/cli.js'
 import { mcpTransport } from '../lib/transports/mcp.js'
 import { nativeTransport } from '../lib/transports/native.js'
 import { createTransportRegistry } from '../lib/transports/registry.js'
+import { shellReadTransport } from '../lib/transports/shell-read.js'
 
 const signal = new AbortController().signal
 
@@ -188,6 +190,40 @@ test('PTC nested calls are skipped', async () => {
     await h.post(exec, result)
     h.result(exec, result)
     assert.equal(h.emissions.length, 0)
+  } finally {
+    h.cleanup()
+  }
+})
+
+
+test('shell-read cat authorizes the file after exact final-output verification', async () => {
+  const h = harness({
+    transports: createTransportRegistry([mcpTransport(), cliTransport(), shellReadTransport(), nativeTransport()]),
+    sources: createSourceRegistry([codegraphSource, shellReadSource]),
+  })
+  try {
+    const exec = {
+      name: 'bash',
+      arguments: { command: 'cat alpha.js' },
+      callId: 'call-shell',
+      agent: { session: {} },
+      signal,
+    }
+    const value = {
+      kind: 'foreground',
+      cwd: h.project,
+      exitCode: 0,
+      signal: null,
+      timedOut: false,
+      aborted: false,
+      stdout: { text: 'export const alpha = 1\n', truncated: false },
+      stderr: { text: '', truncated: false },
+    }
+    const result = { isError: false, value, content: [{ type: 'text', text: value.stdout.text }] }
+    await h.post(exec, result)
+    h.result(exec, result)
+    assert.equal(h.emissions.length, 1)
+    assert.equal(h.emissions[0].target.targetKey, h.alpha)
   } finally {
     h.cleanup()
   }
