@@ -14,7 +14,14 @@ function plan(stages) {
   return { dialect: 'bash', file: 'f', stages }
 }
 
-test('ReadPlan replay matches the platform commands for common forms', () => {
+test('ReadPlan replay matches the platform commands for common forms', {
+  // The Windows preset runs PowerShell and system32\bash.exe is WSL, which
+  // cannot use a Windows temp path as its cwd. PowerShell coverage lives in
+  // powershell-differential.test.js.
+  skip: process.platform === 'win32'
+    ? 'GNU coreutils are not available in the Windows preset'
+    : false,
+}, () => {
   const dir = mkdtempSync(join(tmpdir(), 'shell-read-'))
   try {
     writeFileSync(join(dir, 'f'), 'a\n\nb\n')

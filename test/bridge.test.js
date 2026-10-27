@@ -6,6 +6,7 @@ import { beforeEach, test } from 'node:test'
 import { registerBridge } from '../lib/bridge.js'
 import { clearPending } from '../lib/observation/emit.js'
 import { codegraphSource } from '../lib/sources/codegraph.js'
+import { powershellReadSource } from '../lib/sources/powershell-read.js'
 import { createSourceRegistry } from '../lib/sources/registry.js'
 import { shellReadSource } from '../lib/sources/shell-read.js'
 import { cliTransport } from '../lib/transports/cli.js'
@@ -224,6 +225,41 @@ test('shell-read cat authorizes the file after exact final-output verification',
     h.result(exec, result)
     assert.equal(h.emissions.length, 1)
     assert.equal(h.emissions[0].target.targetKey, h.alpha)
+  } finally {
+    h.cleanup()
+  }
+})
+
+test('pwsh Get-Content authorizes through Windows CRLF stdout', async () => {
+  const h = harness({
+    transports: createTransportRegistry([mcpTransport(), cliTransport(), shellReadTransport(), nativeTransport()]),
+    sources: createSourceRegistry([codegraphSource, shellReadSource, powershellReadSource]),
+  })
+  try {
+    const exec = {
+      name: 'pwsh',
+      arguments: { command: 'Get-Content alpha.js' },
+      callId: 'call-pwsh',
+      agent: { session: {} },
+      signal,
+    }
+    const stdout = 'export const alpha = 1\r\n'
+    const value = {
+      kind: 'foreground',
+      cwd: h.project,
+      exitCode: 0,
+      signal: null,
+      timedOut: false,
+      aborted: false,
+      stdout: { text: stdout, truncated: false },
+      stderr: { text: '', truncated: false },
+    }
+    const result = { isError: false, value, content: [{ type: 'text', text: stdout }] }
+    await h.post(exec, result)
+    h.result(exec, result)
+    assert.equal(h.emissions.length, 1)
+    assert.equal(h.emissions[0].target.targetKey, h.alpha)
+    assert.deepEqual(h.emissions[0].observation, { kind: 'present', version: 'v1' })
   } finally {
     h.cleanup()
   }

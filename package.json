@@ -1,8 +1,8 @@
 {
   "name": "dsh-fs-observation-bridge",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
-  "description": "Bridges code-reading tools (MCP, CLI, conservative Bash shell reads, native) into DSH's fs/observed read-before-edit policy, with transport and source registries.",
+  "description": "Bridges code-reading tools (MCP, CLI, conservative Bash and PowerShell shell reads, native) into DSH's fs/observed read-before-edit policy, with transport and source registries.",
   "type": "module",
   "main": "lib/index.js",
   "exports": {

@@ -4,6 +4,8 @@
 # `fs/write-intent` / `fs/edit-intent`. This bundle only adds observation
 # sources: source a code-reading tool actually returned is validated against
 # the current file and recorded through `fs/observed`, exactly like `read`.
+# Sources: CodeGraph (MCP/CLI), conservative Bash reads, and conservative
+# PowerShell reads on Windows `pwsh`.
 #
 # No row is disabled: the bridge registers no decision slot, so installing or
 # removing it never changes another plugin's registration.

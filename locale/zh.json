@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "文件系统观察桥",
-    "description": "让编辑前先读策略信任代码读取工具返回的源码：Transport 归一化 MCP/CLI/原生调用，Source 校验真实源码证据与当前文件一致后才记为已观察。"
+    "description": "让编辑前先读策略信任代码读取工具返回的源码：Transport 归一化 MCP/CLI/shell-read（Bash/PowerShell）/原生调用，Source 校验真实源码证据与当前文件一致后才记为已观察。"
   }
 }

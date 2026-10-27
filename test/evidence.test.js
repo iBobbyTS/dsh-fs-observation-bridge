@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { join } from 'node:path'
 import test from 'node:test'
 import { validateEvidence } from '../lib/observation/evidence.js'
 
@@ -59,13 +60,16 @@ test('a moved snippet still matches by exact text', async () => {
 })
 
 test('relative evidence resolves against the invocation cwd or root', async () => {
-  const ctx = ctxWithFiles({ '/repo/a.js': { text: 'x' }, '/root/b.js': { text: 'y' } })
+  const ctx = ctxWithFiles({
+    [join('/repo', 'a.js')]: { text: 'x' },
+    [join('/root', 'b.js')]: { text: 'y' },
+  })
   const evidence = [
     { path: 'a.js', snippets: [{ text: 'x' }] },
     { path: 'b.js', root: '/root', snippets: [{ text: 'y' }] },
   ]
   const validated = await validateEvidence(ctx, { cwd: '/repo' }, evidence, signal)
-  assert.deepEqual(validated.map(item => item.target.targetKey), ['/repo/a.js', '/root/b.js'])
+  assert.deepEqual(validated.map(item => item.target.targetKey), [join('/repo', 'a.js'), join('/root', 'b.js')])
 })
 
 test('oversized, non-file, and unreadable targets are skipped', async () => {

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { join, resolve } from 'node:path'
 import test from 'node:test'
 import { sourceAccepts } from '../lib/sources/registry.js'
 import { shellReadSource } from '../lib/sources/shell-read.js'
@@ -51,8 +52,8 @@ test('shell-read transport normalizes cat with the effective workdir', async () 
   const normalized = await transport.normalize(ctxWithCwd('/repo'), exec, foreground({ cwd: '/repo/sub' }))
   assert.equal(transport.match(exec), true)
   assert.equal(normalized.transport, 'shell-read')
-  assert.equal(normalized.plan.file, '/repo/sub/src/a.ts')
-  assert.equal(normalized.plan.effectiveCwd, '/repo/sub')
+  assert.equal(normalized.plan.file, resolve(join('/repo', 'sub'), 'src/a.ts'))
+  assert.equal(normalized.plan.effectiveCwd, join('/repo', 'sub'))
   assert.deepEqual(normalized.plan.stages, [{ kind: 'cat', number: 'none' }])
   assert.equal(normalized.stdout, 'a\n')
   assert.equal(normalized.exitCode, 0)
