@@ -51,6 +51,8 @@ test('P0 head, tail, sed, and line-number forms parse', () => {
 })
 
 test('P1 pipelines preserve stage order and allow two selectors', () => {
+  assert.equal(plan('cat -n f | head').stages[0].number, 'all')
+  assert.equal(plan('head f | sed -n 1,2p').stages[0].kind, 'head')
   assert.deepEqual(plan('cat app.ts | head -n 80').stages, [
     { kind: 'cat', number: 'none' },
     { kind: 'head', count: 80 },
@@ -120,8 +122,6 @@ test('unsupported shell shapes are rejected', () => {
     'cat f | head -n 80 | tail -n 5 | nl -ba',
     'cat f | nl -ba | nl -ba',
     'cat f | head | sed | tail',
-    'cat -n f | head',
-    'head f | sed -n 1,2p',
   ]) {
     assert.equal(parseShellReadCommand(command).ok, false, command)
   }

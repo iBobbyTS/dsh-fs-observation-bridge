@@ -114,7 +114,7 @@ test('shell-read rejects non-foreground, failed, truncated, and dirty executions
 
 test('shell-read does not claim unsupported syntax or persistent-shaped results', async () => {
   const transport = shellReadTransport()
-  assert.equal(transport.match({ name: 'bash', arguments: { command: 'cat a b' } }), false)
+  assert.equal(transport.match({ name: 'bash', arguments: { command: 'cat a b' } }), true)
   assert.equal(transport.match({ name: 'bash', arguments: { command: 'cat a | tee b' } }), false)
   assert.equal(transport.match({ name: 'bash', arguments: { command: 'git show HEAD:a' } }), false)
   assert.equal(transport.match({ name: 'bash', arguments: { command: 'cat a' } }), true)
