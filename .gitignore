@@ -1,3 +1,9 @@
+# AI Agent
 .agent-work
-*.DS_Store
+.codegraph
+
+# node
 node_modules/
+
+# OS Junk
+*.DS_Store
